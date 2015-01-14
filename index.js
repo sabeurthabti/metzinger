@@ -3,7 +3,7 @@ var fs = require('fs'),
     Q = require('q'),
     path = require('path'),
     LocalFiles = require('./lib/LocalFiles.js'),
-    Image = require('./lib/Image.js'),
+    // Image = require('./lib/Image.js'),
     Comparison = require('./lib/Comparison.js');
 
 var Metzinger = function(uid, tag, driver) {
@@ -19,15 +19,14 @@ var Metzinger = function(uid, tag, driver) {
 
 Metzinger.prototype.checkVisualRegression = function(pageName, opts) {
   this._takeScreenshot(pageName, function(imagePath) {
-    var screenshot = new Image(imagePath);
     var referenceScreenshot = this._getReferenceScreenshotFor(pageName);
 
     if (!referenceScreenshot) {
-      this._markAsNew(screenshot);
+      this._markAsNew(imagePath);
       throw 'New screenshot for' + pageName;
     }
 
-    Comparison.spotDifferencesBetween(referenceScreenshot, screenshot).then(function(isEqual) {
+    Comparison.spotDifferencesBetween(referenceScreenshot, imagePath).then(function(isEqual) {
       console.log("Screenshots %s", isEqual ? "matched" : "didn't match");
     }, function(err) {
       console.log("Something went terribly wrong: ", err);
@@ -56,7 +55,7 @@ Metzinger.prototype._takeScreenshot = function(pageName, cb, opts) {
 Metzinger.prototype._getReferenceScreenshotFor = function(pageName) {
   var imagePath = path.join( this.localFiles.pathFor('ref'), this._fileNameFor(pageName) );
   if (fs.existsSync(imagePath)) {
-    return new Image(imagePath);
+    return imagePath;
   } else {
     return false;
   }
@@ -67,11 +66,11 @@ Metzinger.prototype._fileNameFor = function(pageName) {
 }
 
 Metzinger.prototype._markAsNew = function(screenshot) {
-  fs.renameSync( './' + screenshot.path, path.join( this.localFiles.pathFor('new'), path.basename(screenshot.path) ));
+  fs.renameSync( './' + screenshot, path.join( this.localFiles.pathFor('new'), path.basename(screenshot) ));
 }
 
 Metzinger.prototype._markForReview = function(screenshot) {
-  fs.renameSync('./' + screenshot.path, path.join( this.localFiles.pathFor('diff'), path.basename(screenshot.path) ));
+  fs.renameSync('./' + screenshot, path.join( this.localFiles.pathFor('diff'), path.basename(screenshot) ));
 }
 
 Metzinger.prototype._image = function(path, opts) {

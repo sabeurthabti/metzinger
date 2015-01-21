@@ -23,7 +23,7 @@ Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
     var pathTo = this.pathFor('new', pageName);
 
     yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('new', pageName));
-    // throw 'New screenshot for ' + pageName;
+
     return {status: false, message: "Metzinger: new screenshot created for " + pageName}
   }
 
@@ -33,10 +33,8 @@ Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
   if( (yield this.compare(reference, sample, pageName)) === true) {
     yield this.localFiles.deleteFile(this.pathFor('tmp', pageName));
     return {status: true, message: "Metzinger: screenshots match."}
-    // return true;
   } else {
     yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('diff', pageName));
-    // throw new Error('Screenshots for ' + pageName + ' do NOT match.');
     return {status: false, message: "Metzinger: screenshots for " + pageName + " do NOT match."}
   }
 }

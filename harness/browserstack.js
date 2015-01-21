@@ -1,4 +1,5 @@
 var webdriver = require('browserstack-webdriver'),
+    co = require('co'),
     Metzinger = require('../index.js');
 
 var capabilities = {
@@ -14,11 +15,19 @@ var driver = new webdriver.Builder().
 
 driver.get('http://stage-masthead.herokuapp.com');
 
-driver.getTitle().then(function(title) {
-  console.log(title);
-});
+var metz = new Metzinger('rich', driver);
 
-var metz = new Metzinger('abc123', 'rich', driver);
-metz.checkVisualRegression('firefox-windows');
 
-driver.quit();
+co(metz.checkVisualRegression('firefox-windows')).then(function(result) {
+  driver.quit();
+  return result;
+}, function(err) {
+  driver.quit();
+  throw err;
+}).then(function() {
+  console.log("Ok, we're finished.")
+}).catch(onerror);
+
+function onerror(err) {
+  console.error(err.stack);
+}

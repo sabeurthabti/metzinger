@@ -1,81 +1,76 @@
-var fs = require('fs'),
-    gm = require('../gm'),
-    Q = require('q'),
-    path = require('path'),
+var path = require('path'),
+    debug = require('debug')('metzinger'),
     LocalFiles = require('./lib/LocalFiles.js'),
-    // Image = require('./lib/Image.js'),
-    Comparison = require('./lib/Comparison.js');
+    Resemble = require('./lib/Resemble.js');
 
-var Metzinger = function(uid, tag, driver) {
+var Metzinger = function (tag, driver) {
   this.driver = driver;
-  this.uid = uid;
   this.tag = tag;
-  this.localFiles = new LocalFiles(uid, 'artifacts');
-
-  console.log(this.localFiles.pathFor);
+  this.localFiles = new LocalFiles(process.env.SCREENSHOT_PATH || './test/screenshots');
 
   return this;
 }
 
-Metzinger.prototype.checkVisualRegression = function(pageName, opts) {
-  this._takeScreenshot(pageName, function(imagePath) {
-    var referenceScreenshot = this._getReferenceScreenshotFor(pageName);
+Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
+  var screenshot = yield this.takeScreenshot();
+  yield this.localFiles.writeFile( this.pathFor('tmp', pageName), screenshot );
 
-    if (!referenceScreenshot) {
-      this._markAsNew(imagePath);
-      throw 'New screenshot for' + pageName;
-    }
+  var referenceExists = yield this.localFiles.exists( this.pathFor('ref', pageName) );
 
-    Comparison.spotDifferencesBetween(referenceScreenshot, imagePath).then(function(isEqual) {
-      console.log("Screenshots %s", isEqual ? "matched" : "didn't match");
-    }, function(err) {
-      console.log("Something went terribly wrong: ", err);
-    });
+  if (!referenceExists) {
+    var pathFrom = this.pathFor('tmp', pageName);
+    var pathTo = this.pathFor('new', pageName);
 
+    yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('new', pageName));
+    throw 'New screenshot for ' + pageName;
+  }
 
+  var reference = yield this.localFiles.readFile( this.pathFor('ref', pageName) );
+  var sample = yield this.localFiles.readFile( this.pathFor('tmp', pageName) );
+
+  var result = yield this.compare(reference, sample, pageName);
+  if( result === true ) {
+    yield this.localFiles.deleteFile(this.pathFor('tmp', pageName));
+    return true;
+  } else {
+    yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('diff', pageName));
+    throw result;
+  }
+}
+
+Metzinger.prototype.takeScreenshot = function(pageName, opts) {
+  debug('Take screenshot of ' + pageName);
+  var imagePath = this.pathFor('tmp', pageName);
+  return new Promise(function(resolve, reject) {
+    this.driver.takeScreenshot().then(function(data) {
+      resolve(data);
+    }.bind(this));
   }.bind(this));
 }
 
-//Private(ish)
-
-Metzinger.prototype._takeScreenshot = function(pageName, cb, opts) {
-  var imagePath = path.join( this.localFiles.pathFor('tmp'), this._fileNameFor(pageName) )
-
-  this.driver.takeScreenshot().then(function(data) {
-    fs.writeFile(imagePath, data.replace(/^data:image\/png;base64,/, ''), 'base64', function(err) {
-      if(err) {
-        throw err
+Metzinger.prototype.compare = function(reference, sample, pageName) {
+  debug('Starting comparison for ' + pageName);
+  return new Promise(function(resolve, reject) {;
+    Resemble(reference).compareTo(sample).onComplete(function(data) {
+      debug('-> Comparison complete.')
+      debug('-> Data: ' + JSON.stringify(data));
+      if(parseFloat(data.misMatchPercentage) === 0.00) {
+        debug('-> Screenshots match.')
+        resolve(true);
       } else {
-        cb(imagePath);
+        debug('-> Screenshots do NOT mach.');
+        reject( new Error("Screenshots for " + pageName + " do not match (" + data.misMatchPercentage + "% mismatch).") );
       }
     });
   });
 }
 
-Metzinger.prototype._getReferenceScreenshotFor = function(pageName) {
-  var imagePath = path.join( this.localFiles.pathFor('ref'), this._fileNameFor(pageName) );
-  if (fs.existsSync(imagePath)) {
-    return imagePath;
-  } else {
-    return false;
-  }
-}
-
-Metzinger.prototype._fileNameFor = function(pageName) {
+Metzinger.prototype.fileNameFor = function(pageName) {
   return pageName + '_' + this.tag + '.png';
 }
 
-Metzinger.prototype._markAsNew = function(screenshot) {
-  fs.renameSync( './' + screenshot, path.join( this.localFiles.pathFor('new'), path.basename(screenshot) ));
+Metzinger.prototype.pathFor = function(key, pageName) {
+  return path.join(this.localFiles.folders[key], this.fileNameFor(pageName));
 }
-
-Metzinger.prototype._markForReview = function(screenshot) {
-  fs.renameSync('./' + screenshot, path.join( this.localFiles.pathFor('diff'), path.basename(screenshot) ));
-}
-
-Metzinger.prototype._image = function(path, opts) {
-
-}
-
 
 module.exports = Metzinger;

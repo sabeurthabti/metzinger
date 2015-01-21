@@ -3,7 +3,7 @@ var path = require('path'),
     LocalFiles = require('./lib/LocalFiles.js'),
     Resemble = require('./lib/Resemble.js');
 
-var Metzinger = function (tag, driver) {
+var Metzinger = function(tag, driver) {
   this.driver = driver;
   this.tag = tag;
   this.localFiles = new LocalFiles(process.env.SCREENSHOT_PATH || './test/screenshots');
@@ -23,7 +23,8 @@ Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
     var pathTo = this.pathFor('new', pageName);
 
     yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('new', pageName));
-    throw 'New screenshot for ' + pageName;
+    // throw 'New screenshot for ' + pageName;
+    return {status: false, message: "Metzinger: new screenshot created for " + pageName}
   }
 
   var reference = yield this.localFiles.readFile( this.pathFor('ref', pageName) );
@@ -31,10 +32,12 @@ Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
 
   if( (yield this.compare(reference, sample, pageName)) === true) {
     yield this.localFiles.deleteFile(this.pathFor('tmp', pageName));
-    return true;
+    return {status: true, message: "Metzinger: screenshots match."}
+    // return true;
   } else {
     yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('diff', pageName));
-    throw new Error('Screenshots for ' + pageName + ' do NOT match.');
+    // throw new Error('Screenshots for ' + pageName + ' do NOT match.');
+    return {status: false, message: "Metzinger: screenshots for " + pageName + " do NOT match."}
   }
 }
 

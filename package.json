@@ -4,16 +4,15 @@
   "description": "Visual regression testing tool using Node / ImageMagick, inspired by Cezanne",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --harmony-generators node_modules/.bin/jasmine"
   },
   "author": "Richard Harrison",
   "license": "ISC",
   "devDependencies": {
     "browserstack-webdriver": "^2.41.1",
-    "jasmine-core": "^2.1.3",
-    "karma": "^0.12.28",
-    "karma-firefox-launcher": "^0.1.3",
-    "karma-jasmine": "^0.3.2"
+    "jasmine": "^2.1.1",
+    "jasmine-custom-message": "git://github.com/avrelian/jasmine-custom-message#jasmine-2-0",
+    "requirejs": "^2.1.15"
   },
   "dependencies": {
     "canvas": "^1.1.6",

@@ -2,7 +2,7 @@ var webdriver = require('browserstack-webdriver'),
     co = require('co'),
     Metzinger = require('../index.js');
 
-['firefox', 'chrome'].forEach(function(browser) {
+['firefox'].forEach(function(browser) {
     var capabilities = {
     'browserName': browser,
     'browserstack.user': process.env.BS_USER,

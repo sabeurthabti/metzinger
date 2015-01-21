@@ -11,17 +11,13 @@
   "devDependencies": {
     "browserstack-webdriver": "^2.41.1",
     "jasmine": "^2.1.1",
-    "jasmine-custom-message": "git://github.com/avrelian/jasmine-custom-message#jasmine-2-0",
-    "requirejs": "^2.1.15"
   },
   "dependencies": {
     "canvas": "^1.1.6",
     "co": "^4.1.0",
     "debug": "^2.1.1",
-    "dropbox": "^0.10.3",
     "image-type": "^2.0.1",
     "mkdirp": "^0.5.0",
-    "q": "^1.1.2",
     "resemblejs": "^1.2.0",
     "rimraf": "^2.2.8"
   }

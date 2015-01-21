@@ -18,6 +18,7 @@ Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
   var referenceExists = yield this.localFiles.exists( this.pathFor('ref', pageName) );
 
   if (!referenceExists) {
+    debug('New Screenshot for ' + pageName);
     var pathFrom = this.pathFor('tmp', pageName);
     var pathTo = this.pathFor('new', pageName);
 
@@ -28,13 +29,12 @@ Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
   var reference = yield this.localFiles.readFile( this.pathFor('ref', pageName) );
   var sample = yield this.localFiles.readFile( this.pathFor('tmp', pageName) );
 
-  var result = yield this.compare(reference, sample, pageName);
-  if( result === true ) {
+  if( (yield this.compare(reference, sample, pageName)) === true) {
     yield this.localFiles.deleteFile(this.pathFor('tmp', pageName));
     return true;
   } else {
     yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('diff', pageName));
-    throw result;
+    throw new Error('Screenshots for ' + pageName + ' do NOT match.');
   }
 }
 
@@ -54,13 +54,7 @@ Metzinger.prototype.compare = function(reference, sample, pageName) {
     Resemble(reference).compareTo(sample).onComplete(function(data) {
       debug('-> Comparison complete.')
       debug('-> Data: ' + JSON.stringify(data));
-      if(parseFloat(data.misMatchPercentage) === 0.00) {
-        debug('-> Screenshots match.')
-        resolve(true);
-      } else {
-        debug('-> Screenshots do NOT mach.');
-        reject( new Error("Screenshots for " + pageName + " do not match (" + data.misMatchPercentage + "% mismatch).") );
-      }
+      parseFloat(data.misMatchPercentage) === 0.00 ? resolve(true) : resolve(false);
     });
   });
 }

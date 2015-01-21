@@ -1,2 +1,5 @@
 */**/.DS_Store
 .env
+test/screenshots/different_screenshots
+test/screenshots/new_screenshots
+test/screenshots/tmp_screenshots

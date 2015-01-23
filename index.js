@@ -1,5 +1,6 @@
 var path = require('path'),
     debug = require('debug')('metzinger'),
+    co = require('co'),
     LocalFiles = require('./lib/LocalFiles.js'),
     Resemble = require('./lib/Resemble.js');
 
@@ -11,7 +12,7 @@ var Metzinger = function(tag, driver) {
   return this;
 }
 
-Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
+Metzinger.prototype.checkVisualRegression = co.wrap(function*(pageName, opts) {
   var screenshot = yield this.takeScreenshot();
   yield this.localFiles.writeFile( this.pathFor('tmp', pageName), screenshot );
 
@@ -37,7 +38,7 @@ Metzinger.prototype.checkVisualRegression = function*(pageName, opts) {
     yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('diff', pageName));
     return {status: false, message: "Metzinger: screenshots for " + pageName + " do NOT match."}
   }
-}
+})
 
 Metzinger.prototype.takeScreenshot = function(pageName, opts) {
   debug('Take screenshot of ' + pageName);

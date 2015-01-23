@@ -26,6 +26,7 @@ describe("The masthead", function() {
   var metz = new Metzinger(testString, driver);
   it("should look correct", function(done) {
     driver.get('http://stage-masthead.herokuapp.com');
+    driver.manage().window().maximize();
 
     co(metz.checkVisualRegression('masthead')).then(function(result) {
       expect(result.status).toEqual(true, result.message);

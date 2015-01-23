@@ -7,7 +7,11 @@
     "test": "node --harmony-generators node_modules/.bin/jasmine"
   },
   "author": "Richard Harrison",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bskyb-commerce/metzinger"
+  },
+  "main": "./index.js",
   "devDependencies": {
     "browserstack-webdriver": "^2.41.1",
     "jasmine": "^2.1.1"

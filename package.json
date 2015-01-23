@@ -10,7 +10,7 @@
   "license": "ISC",
   "devDependencies": {
     "browserstack-webdriver": "^2.41.1",
-    "jasmine": "^2.1.1",
+    "jasmine": "^2.1.1"
   },
   "dependencies": {
     "canvas": "^1.1.6",

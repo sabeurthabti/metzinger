@@ -44,6 +44,7 @@ describe("The masthead", function() {
   });
 
   afterAll(function() {
+    console.log('Closing...');
     driver.quit();
   });
 });

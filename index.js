@@ -2,6 +2,7 @@ var path = require('path'),
     debug = require('debug')('metzinger'),
     co = require('co'),
     LocalFiles = require('./lib/LocalFiles.js'),
+    Crop = require('./lib/Crop.js'),
     Resemble = require('./lib/Resemble.js');
 
 var Metzinger = function(tag, driver) {
@@ -12,9 +13,14 @@ var Metzinger = function(tag, driver) {
   return this;
 }
 
-Metzinger.prototype.checkVisualRegression = co.wrap(function*(pageName, opts) {
+Metzinger.prototype.checkVisualRegression = co.wrap(function*(pageName, element) {
   var screenshot = yield this.takeScreenshot();
-  yield this.localFiles.writeFile( this.pathFor('tmp', pageName), screenshot );
+
+  debug(screenshot);
+
+  if (typeof(element) != "undefined") {
+    screenshot = yield this.isolate(screenshot, element);
+  }
 
   var referenceExists = yield this.localFiles.exists( this.pathFor('ref', pageName) );
 
@@ -23,29 +29,47 @@ Metzinger.prototype.checkVisualRegression = co.wrap(function*(pageName, opts) {
     var pathFrom = this.pathFor('tmp', pageName);
     var pathTo = this.pathFor('new', pageName);
 
-    yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('new', pageName));
+    yield this.localFiles.writeFile(this.pathFor('new', pageName), screenshot);
 
     return {status: false, message: "Metzinger: new screenshot created for " + pageName}
   }
 
   var reference = yield this.localFiles.readFile( this.pathFor('ref', pageName) );
-  var sample = yield this.localFiles.readFile( this.pathFor('tmp', pageName) );
 
-  if( (yield this.compare(reference, sample, pageName)) === true) {
-    yield this.localFiles.deleteFile(this.pathFor('tmp', pageName));
+  if( (yield this.compare(reference, screenshot, pageName)) === true) {
     return {status: true, message: "Metzinger: screenshots match."}
   } else {
-    yield this.localFiles.rename(this.pathFor('tmp', pageName), this.pathFor('diff', pageName));
+    yield this.localFiles.writeFile(this.pathFor('diff', pageName), screenshot);
     return {status: false, message: "Metzinger: screenshots for " + pageName + " do NOT match."}
   }
-})
+});
+
+Metzinger.prototype.isolate = function(screenshot, element) {
+  return new Promise(function(resolve, reject) {
+    var position,
+        dimensions;
+
+    element.getLocation().then(function(elPos) {
+      position = elPos;
+      return element.getSize();
+    }, function(err) {
+      reject(err);
+    }).then(function(elDim) {
+      dimensions = elDim;
+      resolve(Crop(screenshot, position, dimensions));
+    }, function(err) {
+      reject(err);
+    });
+  });
+}
 
 Metzinger.prototype.takeScreenshot = function(pageName, opts) {
   debug('Take screenshot of ' + pageName);
   var imagePath = this.pathFor('tmp', pageName);
   return new Promise(function(resolve, reject) {
     this.driver.takeScreenshot().then(function(data) {
-      resolve(data);
+      var buffer = new Buffer(data.replace(/^data:image\/png;base64,/,''), 'base64');
+      resolve(buffer);
     }.bind(this));
   }.bind(this));
 }

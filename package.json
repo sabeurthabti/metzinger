@@ -2,7 +2,7 @@
   "name": "metzinger",
   "version": "0.0.1",
   "description": "Visual regression testing tool using Node / ImageMagick, inspired by Cezanne",
-  "main": "index.js",
+  "main": "./index.js",
   "scripts": {
     "test": "node --harmony-generators node_modules/.bin/jasmine"
   },
@@ -11,15 +11,16 @@
     "type": "git",
     "url": "https://github.com/bskyb-commerce/metzinger"
   },
-  "main": "./index.js",
   "devDependencies": {
     "browserstack-webdriver": "^2.41.1",
-    "jasmine": "^2.1.1"
+    "jasmine": "^2.1.1",
+    "selenium-webdriver": "^2.44.0"
   },
   "dependencies": {
     "canvas": "^1.1.6",
     "co": "^4.1.0",
     "debug": "^2.1.1",
+    "express": "^4.11.1",
     "image-type": "^2.0.1",
     "mkdirp": "^0.5.0",
     "resemblejs": "^1.2.0",

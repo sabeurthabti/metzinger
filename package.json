@@ -1,6 +1,6 @@
 {
   "name": "metzinger",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Visual regression testing tool using Node / ImageMagick, inspired by Cezanne",
   "main": "./index.js",
   "scripts": {

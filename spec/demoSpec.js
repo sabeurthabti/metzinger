@@ -1,7 +1,5 @@
-var webdriver = require('selenium-webdriver'),
-//var webdriver = require('browserstack-webdriver'),
+var webdriver = require('browserstack-webdriver'),
     By = webdriver.By,
-    co = require('co'),
     Metzinger = require('../index');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
@@ -13,25 +11,20 @@ var capabilities = {
   'browser_version' : '33.0',
   'os' : 'Windows',
   'os_version' : '8.1',
-  'resolution' : '1024x768'
+  'resolution' : '1920x1080'
 };
 
-var testString = [capabilities.os,capabilities.os_version,capabilities.browser,capabilities.browser_version].join("_").toLowerCase();
-
-// var driver = new webdriver.Builder().
-//   usingServer('http://hub.browserstack.com/wd/hub').
-//   withCapabilities(capabilities).
-//   build();
-
 var driver = new webdriver.Builder().
-  withCapabilities(webdriver.Capabilities.chrome()).
+  usingServer('http://hub.browserstack.com/wd/hub').
+  withCapabilities(capabilities).
   build();
 
 describe("The masthead", function() {
-  var metz = new Metzinger(testString, driver);
+  var metz = new Metzinger("windows-8.1-firefox", driver);
 
   beforeEach(function() {
     driver.get('http://stage-masthead.herokuapp.com/demo/skycom');
+    driver.manage().window().setSize(800,1600);
   });
 
   describe("the header", function() {
@@ -42,37 +35,19 @@ describe("The masthead", function() {
         done();
       });
     });
+  });
 
-    it("should display the profile menu", function(done) {
-      driver.findElement(By.css('[data-event=button-mobile-profile]')).click();
-      var el = driver.findElement(By.css('.js-user-profile'));
-      metz.checkVisualRegression('masthead-header-profile', el).then(function(result) {
+  describe("the footer", function() {
+    it("should look correct", function(done) {
+      var el = driver.findElement(By.css('.skycom.footer'));
+      metz.checkVisualRegression('masthead-footer', el).then(function(result) {
         expect(result.status).toEqual(true, result.message);
         done();
       });
-    });
-  })
-  // it("should look correct", function(done) {
-  //   driver.get('http://stage-masthead.herokuapp.com');
-  //   driver.manage().window().maximize();
+    })
+  });
 
-  //   metz.checkVisualRegression('masthead').then(function(result) {
-  //     expect(result.status).toEqual(true, result.message);
-  //     done();
-  //   });
-  // });
-
-  // it("should hide the cookie banner when 'close' is clicked", function(done) {
-  //   driver.get('http://stage-masthead.herokuapp.com');
-  //   driver.findElement(By.css('.banner__close')).click();
-
-  //   metz.checkVisualRegression('masthead-cookie-close').then(function(result) {
-  //     expect(result.status).toEqual(true, result.message);
-  //     done();
-  //   });
-  // });
-
-  afterAll(function() {
-    driver.quit();
+  afterAll(function(done) {
+    driver.quit().then(done())
   });
 });

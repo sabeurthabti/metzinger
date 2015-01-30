@@ -1,6 +1,6 @@
 {
   "name": "metzinger",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Visual regression testing tool using Node / ImageMagick, inspired by Cezanne",
   "main": "./index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   "devDependencies": {
     "browserstack-webdriver": "^2.41.1",
     "jasmine": "^2.1.1",
-    "selenium-webdriver": "^2.44.0"
+    "selenium-webdriver": "^2.44.0",
   },
   "dependencies": {
     "canvas": "^1.1.6",

@@ -3,6 +3,10 @@
   "version": "0.0.4",
   "description": "Visual regression testing tool using Node / ImageMagick, inspired by Cezanne",
   "main": "./index.js",
+  "licenses": {
+    "type": "MIT",
+    "url": "http://www.opensource.org/licenses/MIT"
+  },
   "scripts": {
     "test": "node --harmony-generators node_modules/.bin/jasmine"
   },
